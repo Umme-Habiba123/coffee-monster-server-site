@@ -44,6 +44,8 @@ const client = new MongoClient(uri, {
 
     const coffesCollection=client.db('coffeesDB').collection('coffees')
 
+    const userCollection=client.db('coffeesDB').collection('users')
+
    app.get('/coffees',async(req,res)=>{
     const result=await coffesCollection.find().toArray()
     res.send(result)
@@ -94,7 +96,30 @@ const client = new MongoClient(uri, {
     })
 
 
+    // user related API---
+    app.get('/users', async(req, res)=>{
+      const result=await userCollection.find().toArray()
+      res.send(result)
+    })
 
+     app.patch('/users', async(req,res)=>{
+        console.log(req.body)
+        const filter={email: email}
+        const updatedDoc={
+          lastSignInTime: lastSignInTime
+        }
+        const result= await userCollection.updateOne(updatedDoc, filter)
+        res.send(result)
+     })
+
+// users related API----------
+
+    app.post('/users', async(req, res)=>{
+      const userProfile=req.body
+      console.log(userProfile)
+      const result=await userCollection.insertOne(userProfile)
+      res.send(result)
+    })
 
 
     // Send a ping to confirm a successful connection--
