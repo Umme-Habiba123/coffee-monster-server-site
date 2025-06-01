@@ -3,19 +3,22 @@ const cors = require("cors");
 require("dotenv").config();
 const app = express();
 const jwt= require('jsonwebtoken')
+const cookieParser=require('cookie-parser')
 const port = 5000;
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 
 app.use(cors({
-  
+  origin:['http://localhost:5173'],
+  credentials: true
 }));
 app.use(express.json());
+app.use(cookieParser())
 
 console.log(process.env.DB_USER);
 console.log(process.env.DB_PASS);
 
-// ----
+// ---------------------
 // user: coffee_monster
 //password: 6WHfTfByFGuofDeo
 
@@ -45,14 +48,22 @@ async function run() {
     const userCollection = client.db("coffeesDB").collection("users");
 
     // jwt token related API------
-   app.post('/jwt', (req,res)=>{
-    const {email}=req.body
-    const user={email}
-    const token= jwt.sign(user,'secret', {expiresIn: '1h'} )
-    res.send({token})
+ app.post('/jwt', async(req,res)=>{
+   const userData=req.body
+   const token=jwt.sign(userData, process.env.JWT_ACCESS_SECRET, {expiresIn: '1d'})
+  
+  //  set token in the cookies-------
+   res.cookie('token', token,{
+    httpOnly: true,
+    secure:false
    })
 
+   res.send({success: true})
+ })
 
+
+
+//  Coffee API--------
     app.get("/coffees", async (req, res) => {
       const result = await coffesCollection.find().toArray();
       res.send(result);
